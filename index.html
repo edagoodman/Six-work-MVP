@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Six-Word MVP — Icebreaker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1F2933;
+    --bg-deep: #161D24;
+    --panel: #F2EEE3;
+    --ink: #1F2933;
+    --amber: #FF8A3D;
+    --amber-dim: #B8602A;
+    --teal: #2BB6A3;
+    --red: #FF6B5C;
+    --steel-line: #3A4652;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    background: radial-gradient(circle at 50% 0%, #2A3540 0%, var(--bg) 45%, var(--bg-deep) 100%);
+    font-family:'Inter',sans-serif;
+    color: var(--panel);
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:28px 16px;
+  }
+  .unit{
+    width:100%; max-width:480px;
+    background: linear-gradient(180deg, #242F39 0%, #1B242C 100%);
+    border-radius:22px;
+    border:1px solid var(--steel-line);
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+    padding:22px 22px 26px;
+  }
+  .badge{
+    display:flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px; letter-spacing:0.12em;
+    color:#8C99A6;
+    margin-bottom:6px;
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);}
+  h1{
+    font-family:'Archivo Black', sans-serif;
+    font-size: clamp(24px, 6vw, 29px);
+    line-height:1.05;
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:#A9B4BD; font-size:13.5px; margin:0 0 16px; line-height:1.5;}
+
+  /* DIAL */
+  .dial-wrap{display:flex; justify-content:center; margin: 4px 0 12px;}
+  .dial-frame{
+    position:relative;
+    width: min(190px, 50vw);
+    height: min(190px, 50vw);
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #3A4652, #1B242C 70%);
+    border:1px solid var(--steel-line);
+    box-shadow: inset 0 4px 14px rgba(0,0,0,0.5), inset 0 -2px 6px rgba(255,255,255,0.03);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .tick{
+    position:absolute; width:2px; height:8px; background:#56636E;
+    top:6px; left:50%; transform-origin: 50% 89px;
+  }
+  .needle{
+    position:absolute; width:4px; height:42%;
+    background: linear-gradient(180deg, var(--amber), var(--amber-dim));
+    top:8%; left:50%; margin-left:-2px;
+    border-radius:6px 6px 2px 2px;
+    transform-origin: 50% 92%;
+    transition: transform 1.8s cubic-bezier(.2,.9,.15,1);
+    box-shadow: 0 0 10px rgba(255,138,61,0.7);
+  }
+  .hub{
+    width:42px; height:42px; border-radius:50%;
+    background: radial-gradient(circle at 40% 35%, #F2EEE3, #C9C2AC);
+    border:3px solid #161D24; z-index:2; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  }
+
+  .readout{
+    background:#0E1419; border:1px solid var(--steel-line); border-radius:12px;
+    padding:12px 16px; margin-bottom:12px; min-height:58px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .readout .label{
+    font-family:'JetBrains Mono',monospace; font-size:10px;
+    color:#5C8A7E; letter-spacing:0.14em; margin-bottom:4px;
+  }
+  .readout .task{
+    font-family:'JetBrains Mono',monospace; font-size: clamp(15px,4.2vw,18px);
+    font-weight:700; color:#FFB347; text-shadow: 0 0 12px rgba(255,179,71,0.45);
+  }
+  .readout .task.placeholder{color:#3E4A54; text-shadow:none; font-weight:500;}
+
+  .spin-btn{
+    width:100%; background: linear-gradient(180deg, #FFA15C, var(--amber)); color:#241300;
+    border:none; border-radius:12px; padding:13px 0; font-weight:700; font-size:14.5px;
+    cursor:pointer; margin-bottom:14px;
+    box-shadow: 0 6px 16px -4px rgba(255,138,61,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+    transition: transform .12s ease;
+  }
+  .spin-btn:active{transform: scale(0.98);}
+
+  .rule-panel{
+    background: var(--panel); color: var(--ink); border-radius:14px;
+    padding:14px 16px; margin-bottom:14px;
+  }
+  .rule-panel .tag{
+    font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em;
+    color: var(--amber-dim); margin-bottom:5px; text-transform:uppercase;
+  }
+  .rule-panel p{margin:0; font-size:14px; line-height:1.5;}
+
+  /* WORD CHECKER */
+  .checker-label{
+    font-family:'JetBrains Mono',monospace; font-size:10px; color:#8C99A6;
+    letter-spacing:0.1em; margin-bottom:6px;
+  }
+  textarea{
+    width:100%; background:#0E1419; border:1px solid var(--steel-line); border-radius:10px;
+    color: var(--panel); font-family:'Inter',sans-serif; font-size:14px; padding:10px 12px;
+    resize:none; min-height:54px; margin-bottom:8px;
+  }
+  textarea:focus{outline:none; border-color: var(--amber);}
+  .count-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .count-display{
+    font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;
+    padding:6px 12px; border-radius:8px; background:#0E1419; border:1px solid var(--steel-line);
+    color:#8C99A6;
+  }
+  .count-display.exact{color: var(--teal); border-color: var(--teal);}
+  .count-display.off{color: var(--red); border-color: var(--red);}
+
+  /* TIMER */
+  .timer-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .timer-display{
+    font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:700;
+    background:#0E1419; border:1px solid var(--steel-line); border-radius:10px;
+    padding:8px 0; flex:1; text-align:center; color:#FFB347; letter-spacing:0.05em;
+  }
+  .timer-display.danger{color: var(--red);}
+  .timer-btn{
+    background:#162028; border:1px solid var(--steel-line); color:var(--panel);
+    border-radius:10px; padding:0 14px; height:44px; font-weight:700; font-size:12.5px; cursor:pointer;
+  }
+  .timer-btn.secondary{color:#8C99A6;}
+
+  .example-btn{
+    width:100%; background:#162028; border:1px solid var(--steel-line); color:#8C99A6;
+    border-radius:10px; padding:10px 0; font-size:12.5px; font-weight:600; cursor:pointer;
+    margin-bottom:8px;
+  }
+  .example-box{
+    display:none; font-family:'JetBrains Mono',monospace; font-size:13px;
+    background:#0E1419; border:1px solid var(--teal); border-radius:10px;
+    color: var(--teal); padding:10px 12px; margin-bottom:6px; line-height:1.4;
+  }
+
+  footer{
+    text-align:center; color:#586572; font-size:11px; margin-top:14px;
+    font-family:'JetBrains Mono',monospace; letter-spacing:0.06em;
+  }
+</style>
+</head>
+<body>
+
+<div class="unit">
+  <div class="badge"><span class="dot"></span>MULTIVERSE · MODULE 9 ICEBREAKER</div>
+  <h1>Six-Word MVP</h1>
+  <p class="sub">Spin for a task. Describe the smallest possible AI product for it in exactly six words. No more, no less.</p>
+
+  <div class="dial-wrap">
+    <div class="dial-frame" id="dialFrame">
+      <div class="needle" id="needle"></div>
+      <div class="hub"></div>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div class="label">CURRENT TASK</div>
+    <div class="task placeholder" id="taskDisplay">— spin to begin —</div>
+  </div>
+
+  <button class="spin-btn" id="spinBtn">SPIN THE DIAL</button>
+
+  <div class="rule-panel">
+    <div class="tag">The rule</div>
+    <p>Exactly six words. Drop yours in the chat. We'll read a few out and vote on the sharpest scope.</p>
+  </div>
+
+  <button class="example-btn" id="exampleBtn">💡 Show a model answer</button>
+  <div class="example-box" id="exampleBox"></div>
+
+  <div class="checker-label">SELF-CHECK YOUR ANSWER</div>
+  <textarea id="wordInput" placeholder="Type your six words here to check the count..."></textarea>
+  <div class="count-row">
+    <span style="font-size:11.5px;color:#6B7682;">Words typed</span>
+    <span class="count-display" id="countDisplay">0 / 6</span>
+  </div>
+
+  <div class="timer-row">
+    <div class="timer-display" id="timerDisplay">01:30</div>
+    <button class="timer-btn" id="timerStart">START</button>
+    <button class="timer-btn secondary" id="timerReset">RESET</button>
+  </div>
+
+  <footer>NINE TASKS · ONE RULE · SIX WORDS</footer>
+</div>
+
+<script>
+const tasks = [
+  "MAKING COFFEE",
+  "BRUSHING TEETH",
+  "MAKING THE BED",
+  "VACUUM CLEANING",
+  "WATCHING TV",
+  "WATERING PLANTS",
+  "WASHING DISHES",
+  "DOING YOGA",
+  "FIXING LIGHT BULBS"
+];
+
+const exampleMVPs = {
+  "MAKING COFFEE": "Machine learns your exact morning order.",
+  "BRUSHING TEETH": "Brush nudges you when pressure's wrong.",
+  "MAKING THE BED": "Sensor reminds you bed's still unmade.",
+  "VACUUM CLEANING": "Robot vacuums only the dirty spots.",
+  "WATCHING TV": "Remote pauses show when you doze.",
+  "WATERING PLANTS": "Sensor texts you when soil's dry.",
+  "WASHING DISHES": "Camera flags dishes left too long.",
+  "DOING YOGA": "App corrects posture using your camera.",
+  "FIXING LIGHT BULBS": "Bulb pings you before it dies."
+};
+
+let currentRotation = 0;
+let chosenTask = null;
+let timerInterval = null;
+let secondsLeft = 90;
+
+const needle = document.getElementById('needle');
+const taskDisplay = document.getElementById('taskDisplay');
+const spinBtn = document.getElementById('spinBtn');
+const exampleBtn = document.getElementById('exampleBtn');
+const exampleBox = document.getElementById('exampleBox');
+const wordInput = document.getElementById('wordInput');
+const countDisplay = document.getElementById('countDisplay');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerStart = document.getElementById('timerStart');
+const timerReset = document.getElementById('timerReset');
+
+// build dial ticks
+const dialFrame = document.getElementById('dialFrame');
+for(let i=0;i<tasks.length;i++){
+  const angle = (360/tasks.length)*i;
+  const tick = document.createElement('div');
+  tick.className = 'tick';
+  tick.style.transform = `rotate(${angle}deg)`;
+  dialFrame.appendChild(tick);
+}
+
+function formatTime(s){
+  const m = Math.floor(s/60).toString().padStart(2,'0');
+  const sec = (s%60).toString().padStart(2,'0');
+  return `${m}:${sec}`;
+}
+
+function resetTimer(){
+  clearInterval(timerInterval);
+  timerInterval = null;
+  secondsLeft = 90;
+  timerDisplay.textContent = formatTime(secondsLeft);
+  timerDisplay.classList.remove('danger');
+  timerStart.textContent = "START";
+}
+
+spinBtn.addEventListener('click', () => {
+  const choice = Math.floor(Math.random()*tasks.length);
+  const segment = 360/tasks.length;
+  const targetAngle = segment*choice;
+  const extraSpins = 4 + Math.floor(Math.random()*2);
+  currentRotation += (360*extraSpins) + ((targetAngle - (currentRotation % 360) + 360) % 360);
+  needle.style.transform = `rotate(${currentRotation}deg)`;
+  taskDisplay.classList.remove('placeholder');
+  spinBtn.disabled = true;
+  exampleBox.style.display = 'none';
+  exampleBtn.textContent = "💡 Show a model answer";
+  wordInput.value = '';
+  updateCount();
+  setTimeout(() => {
+    chosenTask = tasks[choice];
+    taskDisplay.textContent = chosenTask;
+    spinBtn.disabled = false;
+  }, 1800);
+});
+
+exampleBtn.addEventListener('click', () => {
+  if(!chosenTask) return;
+  const showing = exampleBox.style.display === 'block';
+  if(showing){
+    exampleBox.style.display = 'none';
+    exampleBtn.textContent = "💡 Show a model answer";
+  } else {
+    exampleBox.textContent = exampleMVPs[chosenTask];
+    exampleBox.style.display = 'block';
+    exampleBtn.textContent = "🙈 Hide model answer";
+  }
+});
+
+function updateCount(){
+  const words = wordInput.value.trim().split(/\s+/).filter(w => w.length > 0);
+  const n = words.length;
+  countDisplay.textContent = `${n} / 6`;
+  countDisplay.classList.remove('exact','off');
+  if(n === 6) countDisplay.classList.add('exact');
+  else if(n > 0) countDisplay.classList.add('off');
+}
+wordInput.addEventListener('input', updateCount);
+
+timerStart.addEventListener('click', () => {
+  if(timerInterval){
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timerStart.textContent = "RESUME";
+    return;
+  }
+  timerStart.textContent = "PAUSE";
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    if(secondsLeft <= 15) timerDisplay.classList.add('danger');
+    if(secondsLeft <= 0){
+      clearInterval(timerInterval);
+      timerInterval = null;
+      secondsLeft = 0;
+      timerStart.textContent = "START";
+    }
+    timerDisplay.textContent = formatTime(Math.max(secondsLeft,0));
+  }, 1000);
+});
+
+timerReset.addEventListener('click', resetTimer);
+
+resetTimer();
+</script>
+
+</body>
+</html>
